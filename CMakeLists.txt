@@ -120,11 +120,13 @@ add_executable(${ProjectId}
 # Specify dependencies.  MaidSafe libraries are prefixed 'maidsafe_'.  For details, see the contents
 # of the ${MAIDSAFE_BINARY_DIR}/CMakeExports/<MaidSafe lib name>_export.cmake files.
 qt5_use_modules(${ProjectId} Qml Quick )
-target_link_libraries(${ProjectId} maidsafe_common Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Widgets Qt5::Gui Qt5::Qml)
-
 if(WIN32)
+  target_link_libraries(${ProjectId} maidsafe_common Qt5::WinMain Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Gui Qt5::Qml)
   set_target_properties(${ProjectId} PROPERTIES WIN32_EXECUTABLE TRUE)
+else()
+  target_link_libraries(${ProjectId} maidsafe_common Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Quick Qt5::Qml)
 endif()
+
 
 #==================================================================================================#
 #  Set compiler and linker flags.  Further flags can be appended as shown below for the Windows    #
