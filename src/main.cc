@@ -2,10 +2,10 @@
 #include <QtQml>
 #include <QtQuick/QQuickView>
 
+#include "maidsafe/common/log.h"
 #include "common_qml_plugin.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
     QApplication::setOrganizationName("MaidSafe");
     QApplication::setOrganizationDomain("maidsafe.net");
@@ -14,18 +14,43 @@ int main(int argc, char *argv[])
     QApplication::setStyle("fusion");
 
     QApplication app(argc, argv);
-    QQuickView view;
-    view.setMinimumSize(QSize(640, 480));
-    view.setTitle("FreedomCrypt");
+//    qmlRegisterType<FreedomCryptModel>("FreedomCrypt",
+//                                       1,
+//                                       0,
+//                                       "FreedomCryptModel");
+    try {
+         int rc = 0;
 
- //   registerQmlTypes();
-    view.setResizeMode(QQuickView::SizeRootObjectToView);
-//    view.rootContext()->setContextProperty(QLatin1String("spotify"), QSpotifySession::instance());
-//    view.engine()->addImageProvider(QLatin1String("spotify"), new QSpotifyImageProvider);
-    view.setSource(QUrl("qrc:/qml/main.qml"));
-    view.setIcon(QPixmap("qrc:/qml/images/icon.png"));
-    view.show();
+         QQmlEngine engine;
+         QQmlComponent *component = new QQmlComponent(&engine);
 
+         QObject::connect(&engine, SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
 
-    return app.exec();
+         component->loadUrl(QUrl("qrc:/qml/main.qml"));
+
+         if (!component->isReady() ) {
+             qWarning("%s", qPrintable(component->errorString()));
+             return -1;
+         }
+
+         QObject *topLevel = component->create();
+         QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
+
+         QSurfaceFormat surfaceFormat = window->requestedFormat();
+         window->setFormat(surfaceFormat);
+         window->show();
+
+         rc = app.exec();
+
+         delete component;
+         return rc;
+
+    } catch(const std::exception &ex) {
+      LOG(kError) << "STD Exception Caught: " << ex.what();
+      return -1;
+    } catch(...) {
+      LOG(kError) << "Default Exception Caught";
+      return -1;
+    }
 }
+
