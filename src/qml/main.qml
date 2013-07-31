@@ -2,7 +2,7 @@ import QtQuick 2.1
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.0
-//import QtCommon 1.0
+import FreedomCrypt 1.0
 
 
 ApplicationWindow {
@@ -30,6 +30,10 @@ ApplicationWindow {
         }
     }
 
+FreedomCryptModel {
+    id: freedom
+}
+
     toolBar: ToolBar {
         id: toolbar
         opacity: 0.4
@@ -38,7 +42,8 @@ ApplicationWindow {
         height: 27
         RowLayout {
             ToolButton {
-                text: "Encrypt"
+                text: freedom.RandomString(4)
+                onClicked: text = freedom.RandomString(4)
             }
             ToolButton {
                 text: "Decrypt"
@@ -63,6 +68,7 @@ ApplicationWindow {
         id: fileDialog
         title: "Please choose a file"
         nameFilters: [ "All files (*.*)", "All files (*)" ]
+
         onAccepted: {
             console.log("You chose: " + fileDialog.fileUrls)
            // Qt.quit()

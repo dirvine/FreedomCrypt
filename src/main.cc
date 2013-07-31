@@ -14,10 +14,10 @@ int main(int argc, char *argv[]) {
     QApplication::setStyle("fusion");
 
     QApplication app(argc, argv);
-//    qmlRegisterType<FreedomCryptModel>("FreedomCrypt",
-//                                       1,
-//                                       0,
-//                                       "FreedomCryptModel");
+    qmlRegisterType<FreedomCryptModel>("FreedomCrypt",
+                                       1,
+                                       0,
+                                       "FreedomCryptModel");
     try {
          int rc = 0;
 
