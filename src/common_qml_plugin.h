@@ -21,14 +21,7 @@ public:
        return QString::fromStdString(maidsafe::RandomAlphaNumericString(static_cast<size_t>(size)));
   }
   private:
-    std::string ConvertToUTF8Array(const QString& input_string) {
-      QByteArray string_array(input_string.toUtf8());
-      return std::string(string_array.data(), string_array.size());
-    }
-
-    QString ConvertFromUTF8Array(const std::string& input_string) {
-      return QString::fromUtf8(input_string.data(), static_cast<int>(input_string.size()));
-    }
+  maidsafe::rsa::Keys keys_;
 
 };
 

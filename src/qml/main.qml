@@ -2,13 +2,13 @@ import QtQuick 2.1
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.0
+import QtQuick.Particles 2.0
 import FreedomCrypt 1.0
 
 
 ApplicationWindow {
     id: root
     title: qsTr("FreedomCrypt 1.0")
-//    color: "lightblue"
     minimumWidth: 600
     minimumHeight: 400
 
@@ -63,21 +63,38 @@ FreedomCryptModel {
         }
         }
 // ##############Pages ########################
+Rectangle {
+  color: "black"
+  height: 400
+  width: 600
+  anchors.fill: parent
+
+    ParticleSystem {
+        anchors.fill: parent
+        ImageParticle {
+            source: "qrc:/qml/images/star-on.png"
+            colorVariation: 1.0
+        }
+        Emitter {
+         anchors.bottom: parent.bottom
+         size: 10
+         height: 40
+         width: 600
+          lifeSpan: 8000
+          AngleDirection {
+              angle: 300
+              angleVariation: 10
+              magnitude: 15
+
+          }
+        }
+    }
+}
 
     FileDialog {
         id: fileDialog
         title: "Please choose a file"
         nameFilters: [ "All files (*.*)", "All files (*)" ]
-
-        onAccepted: {
-            console.log("You chose: " + fileDialog.fileUrls)
-           // Qt.quit()
-        }
-        onRejected: {
-            console.log("Canceled")
-            //Qt.quit()
-        }
-      //  Component.onCompleted: visible = true
     }
 
     Item {
