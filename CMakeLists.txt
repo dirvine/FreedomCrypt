@@ -29,33 +29,26 @@
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # works for Unix MakeFiles (also ninja)
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_ERROR_DEPRECATED ON)
+set(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION ON)
+set(EXPORT_COMPILE_COMMANDS ON)
+set(HR "================================================================================")
 cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 get_filename_component(ProjectId "${CMAKE_SOURCE_DIR}" NAME)
 string(REPLACE " " "_" ProjectId "${ProjectId}")
-project(${ProjectId})
+project(${ProjectId}) 
+find_program(CCACHE "ccache")
+if (CCACHE)
+  message( STATUS "Using ccache")
+  SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+  SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache) 
+endif(CCACHE)
 
-#==================================================================================================#
-#  This imports much of the standard MaidSafe environment, and also brings all the MaidSafe        #
-#  libraries into scope as CMake targets.                                                          #
-#==================================================================================================#
-find_file(MaidSafeExport NAMES maidsafe_export.cmake
-                         PATHS ${MAIDSAFE_BINARY_DIR} ../build ../../build
-                         NO_DEFAULT_PATH)
-
-if(NOT MaidSafeExport)
-  set(ErrorMessage "\n\nCan't find maidsafe_export.cmake in MAIDSAFE_BINARY_DIR.  ")
-  set(ErrorMessage "${ErrorMessage}Currently MAIDSAFE_BINARY_DIR is set to ")
-  set(ErrorMessage "${ErrorMessage}\"${MAIDSAFE_BINARY_DIR}\"  It must be set to the MaidSafe ")
-  set(ErrorMessage "${ErrorMessage}super-project's build root.\nTo set it, run:\n")
-  set(ErrorMessage "${ErrorMessage}    cmake . -DMAIDSAFE_BINARY_DIR=\"<path to build root>\"\n\n")
-  message(FATAL_ERROR "${ErrorMessage}")
-else()
-  get_filename_component(ExportDir "${MaidSafeExport}" PATH)
-  get_filename_component(MAIDSAFE_BINARY_DIR "${ExportDir}" PATH CACHE)
-endif()
-
-include(${MaidSafeExport})
-
+add_definitions(-DAPPLICATION_VERSION_MAJOR=0)
+add_definitions(-DAPPLICATION_VERSION_MINOR=0) 
+add_definitions(-DAPPLICATION_VERSION_PATCH=100)
 
 #==================================================================================================#
 #  Standard setup stuff - probably doesn't need changed.                                           #
@@ -66,33 +59,16 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("/opt/maidsafe/include")
+link_directories("/opt/maidsafe/lib")
 
-include(utils)
-get_target_platform()
-get_target_architecture()
+
 
 #==================================================================================================#
 # Qt library search                                                                                #
 #==================================================================================================#
-set(Qt5Required ON)
-include(maidsafe_find_qt5)
 set(CMAKE_AUTOMOC ON)
-
-#==================================================================================================#
-#  Handle protocol buffer files.                                                                   #
-#                                                                                                  #
-#  Uncomment the first block if you have .proto files in your 'src' dir                            #
-#  Also uncomment the second block if you have .proto files in a nested dir called 'src/nested'    #
-#==================================================================================================#
-include(add_protoc_command)
-#set(ProtobufRootDir ${PROJECT_SOURCE_DIR}/src)
-#set(ProtobufRelDir "")
-#add_protoc_command(Root "${ProtobufRootDir}" "${ProtobufRelDir}")
-
-#set(ProtobufRelDir "nested")
-#add_protoc_command(Nested "${ProtobufRootDir}" "${ProtobufRelDir}")
-
-
+find_package(Qt5Widgets)
 #==================================================================================================#
 # Set up UI files                                                                                  #
 #==================================================================================================#
@@ -114,9 +90,7 @@ QT5_ADD_RESOURCES(SOURCE_FILES_RESOURCES ${SOURCE_FILES_RESOURCES})
 add_executable(${ProjectId}
                ${SOURCE_FILES}
                ${QML_FILES}
-               ${SOURCE_FILES_RESOURCES}
-               ${RootProtos}
-               ${NestedProtos})
+               ${SOURCE_FILES_RESOURCES})
 # Specify dependencies.  MaidSafe libraries are prefixed 'maidsafe_'.  For details, see the contents
 # of the ${MAIDSAFE_BINARY_DIR}/CMakeExports/<MaidSafe lib name>_export.cmake files.
 qt5_use_modules(${ProjectId} Qml Quick )
@@ -124,7 +98,7 @@ if(WIN32)
   target_link_libraries(${ProjectId} maidsafe_common Qt5::WinMain Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Gui Qt5::Qml)
   set_target_properties(${ProjectId} PROPERTIES WIN32_EXECUTABLE TRUE)
 else()
-  target_link_libraries(${ProjectId} maidsafe_common Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Quick Qt5::Qml)
+  target_link_libraries(${ProjectId} maidsafe_common boost_system-mt boost_thread-mt boost_filesystem-mt boost_program_options-mt cryptopp protobuf_lite Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Quick Qt5::Qml)
 endif()
 
 
@@ -133,10 +107,8 @@ endif()
 #  and Linux versions of "don't treat warnings as errors" respectively.  For any conflicting       #
 #  flags, the last one in the flags string will "win".                                             #
 #==================================================================================================#
-include(standard_flags)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error") # unfortuantely required
-
+set(CMAKE_CXX_FLAGS "-Qunused-arguments -std=c++11 -Wno-error -Wno-float-equal") # unfortuantely required
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 #set(ENV{QML_IMPORT_PATH} "opt/Qt/5.1.0/gcc_64/imports") # has to be set in environment
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT -DQT_NO_DEBUG_STREAM")

@@ -14,9 +14,9 @@ class FreedomCryptModel : public QObject {
 public:
   explicit FreedomCryptModel(QObject* parent = 0)
     : QObject(parent){}
- Q_INVOKABLE int CpuSize() {
-    return maidsafe::CpuSize();
-  }
+//  Q_INVOKABLE int CpuSize() {
+//     return maidsafe::CpuSize();
+//   }
   Q_INVOKABLE QString RandomString(const int& size) {
        return QString::fromStdString(maidsafe::RandomAlphaNumericString(static_cast<size_t>(size)));
   }
